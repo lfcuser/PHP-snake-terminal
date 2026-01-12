@@ -1,8 +1,8 @@
 <?php
 
-$width = 10;
+$width = 20;
 $height = 10;
-$targetScore = 10;
+$targetScore = 20;
 $tickDelay = 150000; // microseconds
 
 $snake = [
@@ -10,17 +10,28 @@ $snake = [
     ['x' => 4, 'y' => 4], // body
 ];
 
-$direction = '>'; // > < ^ v
 $score = 0;
 
-function clearScreen() {
+$dirs = [
+    'A' => [0, -1], // up
+    'B' => [0,  1], // down
+    'C' => [1,  0], // right
+    'D' => [-1, 0], // left
+];
+
+$dx = 1;
+$dy = 0;
+
+function clearScreen()
+{
     echo "\033[2J\033[H";
 }
 
-function draw($snake, $food, $score, $direction, $width, $height) {
+function draw($snake, $food, $score, $width, $height)
+{
     clearScreen();
 
-    echo "Score: $score | Dirrection: $direction\n";
+    echo "Score: $score\n";
 
     $map = array_fill(0, $height, array_fill(0, $width, ' '));
 
@@ -35,8 +46,8 @@ function draw($snake, $food, $score, $direction, $width, $height) {
     }
 }
 
-
-function spawnFood($snake, $width, $height) {
+function spawnFood($snake, $width, $height)
+{
     return [
         'x' => rand(0, $width - 1),
         'y' => rand(0, $height - 1),
@@ -61,28 +72,15 @@ try {
                 fgetc(STDIN);
                 $arrow = fgetc(STDIN);
 
-                $direction = match ($arrow) {
-                    'A' => '^',
-                    'B' => 'v',
-                    'C' => '>',
-                    'D' => '<',
-                    default => $direction
-                };
+                if (isset($dirs[$arrow])) {
+                    [$dx, $dy] = $dirs[$arrow];
+                }
             }
         }
 
         $head = $snake[0];
-
-        match ($direction) {
-            '>' => $head['x']++,
-            '<' => $head['x']--,
-            '^' => $head['y']--,
-            'v' => $head['y']++,
-        };
-
-        $head['x'] = ($head['x'] + $width) % $width;
-        $head['y'] = ($head['y'] + $height) % $height;
-
+        $head['x'] = ($head['x'] + $dx + $width) % $width;
+        $head['y'] = ($head['y'] + $dy + $height) % $height;
         array_unshift($snake, $head);
 
         if ($head['x'] === $food['x'] && $head['y'] === $food['y']) {
@@ -92,12 +90,12 @@ try {
             array_pop($snake);
         }
 
-        draw($snake, $food, $score, $direction, $width, $height);
+        draw($snake, $food, $score, $width, $height);
         usleep($tickDelay);
     }
 
     clearScreen();
-    echo "WIN! Score: 10\n";
+    echo "WIN! Score: {$score}\n";
 } finally {
     system('stty sane');
 }
